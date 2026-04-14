@@ -1,0 +1,117 @@
+name: analyze_company_config
+version: "1.0.0"
+description: >
+  Introspects a PostgreSQL database via information_schema and generates a
+  comprehensive Markdown report: all schemas, tables, columns (data type /
+  nullable / default / ordinal position), primary keys, foreign keys (with
+  ON DELETE / ON UPDATE rules), unique constraints, check constraints, approx
+  row counts, business-domain groupings, and an AI verification checklist.
+  The report is structured so another AI can verify every FK relationship,
+  understand the column-level semantics across the schema, and navigate
+  domain boundaries without running any SQL itself.
+
+skill_type: builtin
+entrypoint: code.py
+
+inputs:
+  - name: output_dir
+    type: string
+    required: false
+    default: "reports"
+    description: >
+      Directory (relative to project root, or absolute) where .md files are
+      written. Two files are produced every live run: db_structure_latest.md
+      (always overwritten) and db_structure_YYYYMMDD_HHMMSS.md (archive).
+
+  - name: schemas
+    type: list
+    items: string
+    required: false
+    default: []
+    description: >
+      Schemas to include. Empty list = all non-system schemas. Example:
+      ["sales", "production", "humanresources"]
+
+  - name: exclude_schemas
+    type: list
+    items: string
+    required: false
+    default: []
+    description: >
+      Additional schemas to exclude beyond the built-in system exclusions
+      (pg_catalog, information_schema, pg_toast). Useful for hiding internal
+      schemas like spine_agent from the report.
+
+  - name: include_row_counts
+    type: boolean
+    required: false
+    default: true
+    description: >
+      Query pg_stat_user_tables for approximate row counts (n_live_tup).
+      Set false if the DB user lacks stats access.
+
+  - name: cache_ttl_hours
+    type: integer
+    required: false
+    default: 6
+    description: >
+      Maximum age (in hours) of a cached snapshot before falling through to
+      live introspection. Set to 0 to always run live.
+
+  - name: use_cache
+    type: boolean
+    required: false
+    default: true
+    description: >
+      Whether to check spine_agent.company_config_snapshots before running
+      live introspection. Set false to force a fresh run.
+
+  - name: max_report_files
+    type: integer
+    required: false
+    default: 7
+    description: >
+      Maximum number of timestamped archive .md files to retain in output_dir.
+      Oldest files beyond this limit are deleted.
+
+outputs:
+  - name: report_file
+    type: string
+    description: "Absolute path to db_structure_latest.md. Null when served from cache."
+
+  - name: archive_file
+    type: string
+    description: "Absolute path to timestamped archive copy. Null when served from cache."
+
+  - name: source
+    type: string
+    description: '"cache" or "live"'
+
+  - name: schema_count
+    type: integer
+
+  - name: table_count
+    type: integer
+
+  - name: fk_count
+    type: integer
+
+  - name: domains_detected
+    type: list
+    items: string
+
+cache:
+  table: spine_agent.company_config_snapshots
+  freshness_function: spine_agent.latest_config_snapshot
+  # raw_metrics column receives {} (empty) — this skill collects structural
+  # metadata only, not business metrics; confidence is always "high".
+  fallback_on_missing: true
+
+required_schemas:
+  exclude_always:
+    - pg_catalog
+    - information_schema
+    - pg_toast
+  exclude_by_default_note: >
+    spine_agent is NOT excluded by default. Add it to exclude_schemas if you
+    want to hide the internal caching schema from the report.
