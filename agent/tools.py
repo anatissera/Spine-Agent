@@ -22,7 +22,7 @@ class ToolExecutor:
         skills: "SkillsRegistry",
         db_host: str = "localhost",
         db_port: int = 5433,
-        db_name: str = "Adventureworks",
+        db_name: str = "adventureworks",
         db_user: str = "postgres",
         db_password: str = "postgres",
     ):
