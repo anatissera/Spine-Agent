@@ -165,5 +165,7 @@ def _summarize_result(skill_name: str, result: dict) -> str:
         return f"{result.get('item_count')} items, subtotal ${result.get('subtotal')}"
     if skill_name == "check_inventory":
         return f"{len(result.get('products', []))} products checked"
+    if skill_name == "analyze_company_config":
+        return f"{result.get('schema_count')} schemas, {result.get('table_count')} tables, {result.get('fk_count')} FKs"
 
     return "done"

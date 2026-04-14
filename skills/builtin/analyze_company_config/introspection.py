@@ -45,10 +45,10 @@ DOMAIN_PURPOSES: dict[str, str] = {
 _SQL_TABLES_STATS = """
     SELECT
         schemaname  AS table_schema,
-        tablename   AS table_name,
+        relname     AS table_name,
         n_live_tup  AS approx_rows
     FROM pg_stat_user_tables
-    ORDER BY schemaname, tablename;
+    ORDER BY schemaname, relname;
 """
 
 _SQL_TABLES_FALLBACK = """

@@ -2,6 +2,7 @@
 
 import pytest
 
+from skills.builtin.analyze_company_config.skill import AnalyzeCompanyConfig
 from skills.builtin.check_inventory import CheckInventory
 from skills.builtin.get_customer_info import GetCustomerInfo
 from skills.builtin.list_order_items import ListOrderItems
@@ -47,13 +48,36 @@ async def test_check_inventory_by_order():
 
 
 @pytest.mark.asyncio
+async def test_analyze_company_config():
+    skill = AnalyzeCompanyConfig()
+    result = await skill.execute()
+    assert result["success"] is True
+    assert result["schema_count"] > 0
+    assert result["table_count"] > 0
+    assert result["fk_count"] > 0
+    assert "markdown_report" in result
+    assert len(result["markdown_report"]) > 100
+    assert len(result["domains_detected"]) > 0
+    assert len(result["schemas"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_analyze_company_config_with_schema_filter():
+    skill = AnalyzeCompanyConfig()
+    result = await skill.execute(schemas=["sales"])
+    assert result["success"] is True
+    assert result["schemas"] == ["sales"]
+    assert result["schema_count"] == 1
+
+
+@pytest.mark.asyncio
 async def test_skill_registry():
     registry = SkillRegistry()
     await registry.ensure_builtin_skills()
 
-    # All 4 skills should be registered
+    # All 6 builtin skills should be registered
     all_skills = await registry.list_all()
-    assert len(all_skills) >= 4
+    assert len(all_skills) >= 6
 
     # Search by domain
     sales_skills = await registry.search_by_domain("sales")
