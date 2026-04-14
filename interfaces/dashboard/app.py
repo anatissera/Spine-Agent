@@ -21,6 +21,7 @@ with st.sidebar:
     - Spine Explorer
     - Monitor
     - Skills
+    - Activity
     """)
     st.divider()
     st.caption("Anthropic Hackathon 2026")
@@ -34,7 +35,7 @@ st.markdown(
 st.markdown(
     '<div class="hero-subtitle" style="max-width:520px">'
     'An autonomous agent that understands the structure of your business, '
-    'not just the text. It queries, reasons, plans, acts, and learns.'
+    'not just the text. It queries, reasons, plans, learns, and acts.'
     '</div>',
     unsafe_allow_html=True,
 )
@@ -193,6 +194,55 @@ with d3:
     )
 
 st.markdown("")
+
+# ── Learn more (expandable deep dive) ───────────────────────────────────────
+with st.expander("Learn more about how SpineAgent works"):
+    st.markdown(
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.88rem;line-height:1.8;max-width:750px">'
+
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin-bottom:8px">'
+        'The Spine: a structural abstraction</div>'
+        'Every business has one entity at the center — the object with the highest density '
+        'of cross-domain relationships. An order touches Sales, Production, Purchasing, Customer Service, '
+        'Logistics. SpineAgent models this as a <strong>unified spine object</strong> that reconstructs '
+        'the complete state from 10+ database tables across 4 schemas in a single call. '
+        'The agent doesn\'t operate on free text. It operates on the topology of your business.'
+
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin:20px 0 8px">'
+        'Context Store: institutional memory</div>'
+        'Unlike a chatbot that forgets after each session, SpineAgent stores every decision, '
+        'action result, pattern, and state snapshot in PostgreSQL with vector embeddings (pgvector). '
+        'This means semantic search across the agent\'s entire history. After weeks of operation, '
+        'the agent understands your business better than any new employee would.'
+
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin:20px 0 8px">'
+        'AutoSkill: the agent builds its own tools</div>'
+        'When the agent receives a request it can\'t handle, it doesn\'t fail. '
+        'It detects the gap, generates Python code using Claude, validates it in a sandbox '
+        '(syntax, class structure, required attributes), and persists the new skill in the registry. '
+        'Next time the same need arises, the capability already exists. '
+        'The skill library becomes codified institutional knowledge.'
+
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin:20px 0 8px">'
+        'Approval Gate: trust by design</div>'
+        'The agent can observe, query, reason, and propose without restriction. '
+        'But sending a message, modifying a record, or executing a transaction requires explicit human approval. '
+        'Each write action creates a pending approval with full context — what the action is, why it\'s proposed, '
+        'and the data behind it. Approvals expire after 2 hours. '
+        'This is not a transitional limitation. It is the mechanism that allows a business to delegate more '
+        'work to the agent over time without losing control. You\'ll see pending approvals as notifications '
+        'on the Activity page.'
+
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin:20px 0 8px">'
+        'The demo</div>'
+        'This system runs on <strong>AdventureWorks</strong> — a real OLTP database with 31,000+ orders, '
+        '19,000+ customers, and 500+ products. The spine object is a SalesOrder. '
+        'Everything you see in this dashboard is live data from PostgreSQL, processed by Claude, '
+        'with real skills executing real SQL queries. Nothing is mocked.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
 st.markdown("")
 
 # ── Recent activity (if DB connected) ───────────────────────────────────────
