@@ -69,7 +69,7 @@ with st.sidebar:
         st.session_state.agent = SpineAgent()
         st.rerun()
 
-    st.divider()
+    st.markdown("")
     st.markdown("### Approval Gate")
     st.caption("Use these when the agent proposes a write action.")
     c1, c2 = st.columns(2)

@@ -35,7 +35,7 @@ k2.metric("Stale Orders", len(stale))
 k3.metric("Overdue", len(overdue))
 k4.metric("High Severity", high)
 
-st.divider()
+st.markdown("")
 
 # ── Stale Orders ─────────────────────────────────────────────────────────────
 st.markdown("**Stale Orders**")
@@ -63,7 +63,7 @@ if stale:
 else:
     st.success("No stale orders detected.")
 
-st.divider()
+st.markdown("")
 
 # ── Overdue ──────────────────────────────────────────────────────────────────
 st.markdown("**Overdue Orders**")

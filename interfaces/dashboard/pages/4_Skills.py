@@ -25,7 +25,7 @@ k1.metric("Total Skills", len(all_skills))
 k2.metric("Domains", len(domains))
 k3.metric("Total Executions", total_usage)
 
-st.divider()
+st.markdown("")
 
 # ── Skill catalog ────────────────────────────────────────────────────────────
 st.markdown("**Skill Catalog**")
@@ -63,7 +63,7 @@ for domain in domains:
                 unsafe_allow_html=True,
             )
 
-st.divider()
+st.markdown("")
 
 # ── Skill Executor ───────────────────────────────────────────────────────────
 st.markdown("**Skill Executor**")
@@ -97,7 +97,7 @@ if execute_btn:
             st.error(f"Failed: {result.get('error', 'Unknown error')}")
         st.json(result)
 
-st.divider()
+st.markdown("")
 
 # ── AutoSkill Generator ─────────────────────────────────────────────────────
 st.markdown("**AutoSkill Generator**")

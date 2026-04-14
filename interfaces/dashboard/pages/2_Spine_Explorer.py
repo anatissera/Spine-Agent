@@ -38,7 +38,7 @@ if lookup or "spine_loaded" in st.session_state:
     c3.metric("Order Date", str(spine.order_date)[:10])
     c4.metric("Ship Date", str(spine.ship_date)[:10] if spine.ship_date else "Pending")
 
-    st.divider()
+    st.markdown("")
 
     # ── Customer + Addresses ─────────────────────────────────────────
     left, right = st.columns(2)
@@ -76,7 +76,7 @@ if lookup or "spine_loaded" in st.session_state:
             unsafe_allow_html=True,
         )
 
-    st.divider()
+    st.markdown("")
 
     # ── Financials ───────────────────────────────────────────────────
     st.markdown("**Financials**")
@@ -86,7 +86,7 @@ if lookup or "spine_loaded" in st.session_state:
     f3.metric("Freight", format_currency(spine.freight))
     f4.metric("Total", format_currency(spine.total_due))
 
-    st.divider()
+    st.markdown("")
 
     # ── Line items ───────────────────────────────────────────────────
     st.markdown("**Line Items**")
@@ -109,7 +109,7 @@ if lookup or "spine_loaded" in st.session_state:
 
     # ── Inventory chart ──────────────────────────────────────────────
     if spine.inventory:
-        st.divider()
+        st.markdown("")
         st.markdown("**Product Inventory**")
 
         names = [inv.product_name[:25] for inv in spine.inventory]
@@ -133,7 +133,7 @@ if lookup or "spine_loaded" in st.session_state:
         st.plotly_chart(fig, use_container_width=True)
 
     # ── Context history ──────────────────────────────────────────────
-    st.divider()
+    st.markdown("")
     st.markdown("**Context History**")
     from agent.context_store import get_entries_for_spine
     entries = run_async(get_entries_for_spine(f"SalesOrder:{spine.sales_order_id}"))
