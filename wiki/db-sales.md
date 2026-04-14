@@ -32,7 +32,7 @@
 | `subtotal` | numeric | NOT NULL | Range: $1.37 – $163,930. Avg: $3,491 |
 | `taxamt` | numeric | NOT NULL | Range: $0.11 – $17,949. Avg: $324 |
 | `freight` | numeric | NOT NULL | Range: $0.03 – $5,609. Avg: $101 |
-| `totaldue` | numeric | computed | Range: $1.52 – $187,488. Avg: $3,916 |
+| `totaldue` | numeric | **NOT a stored column** | Formula: `subtotal + taxamt + freight`. Range: $1.52 – $187,488. Avg: $3,916 |
 | `comment` | character varying | nullable | 100% null |
 | `rowguid` | uuid | NOT NULL | — |
 | `modifieddate` | timestamp | NOT NULL | Range: 2022-06-06 → 2025-07-06 |
@@ -55,7 +55,7 @@
 | `specialofferid` | integer | NOT NULL | FK → specialofferproduct. 12 distinct |
 | `unitprice` | numeric | NOT NULL | Range: $1.33 – $3,578.27. Avg: $465 |
 | `unitpricediscount` | numeric | NOT NULL | Range: 0.0 – 0.40. Avg: 0.00 (mostly 0) |
-| `linetotal` | numeric | computed | — |
+| `linetotal` | numeric | **NOT a stored column** | Formula: `orderqty * unitprice * (1.0 - unitpricediscount)`. Never use in SELECT — compute inline. |
 | `rowguid` | uuid | NOT NULL | — |
 | `modifieddate` | timestamp | NOT NULL | Range: 2022-05-30 → 2025-06-29 |
 

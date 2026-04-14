@@ -78,9 +78,9 @@ ORDER BY territory, month;
 **Top products by units sold:**
 ```sql
 SELECT
-    p.name                  AS product,
-    SUM(d.orderqty)         AS units_sold,
-    SUM(d.linetotal)        AS revenue
+    p.name                                                          AS product,
+    SUM(d.orderqty)                                                 AS units_sold,
+    ROUND(SUM(d.orderqty * d.unitprice * (1.0 - d.unitpricediscount))::numeric, 2) AS revenue
 FROM "sales"."salesorderdetail"  d
 JOIN "production"."product"      p ON p.productid = d.productid
 GROUP BY p.name
@@ -92,9 +92,9 @@ LIMIT 20;
 ```sql
 SELECT
     CASE WHEN onlineorderflag THEN 'Online' ELSE 'B2B' END AS channel,
-    COUNT(*)        AS orders,
-    SUM(totaldue)   AS total_due,
-    AVG(totaldue)   AS avg_order_value
+    COUNT(*)                          AS orders,
+    SUM(subtotal + taxamt + freight)  AS total_due,
+    AVG(subtotal + taxamt + freight)  AS avg_order_value
 FROM "sales"."salesorderheader"
 GROUP BY onlineorderflag
 ORDER BY orders DESC;
@@ -150,9 +150,26 @@ ORDER BY transactiontype;
 
 ---
 
+## Computed Columns — Never Reference Directly
+
+Two columns in AdventureWorks do **not physically exist** in the PostgreSQL port.
+Referencing them causes `column does not exist` errors. Always expand inline:
+
+| Virtual column | Table | Use this instead |
+|---|---|---|
+| `linetotal` | `sales.salesorderdetail` | `orderqty * unitprice * (1.0 - unitpricediscount)` |
+| `totaldue` | `sales.salesorderheader` | `subtotal + taxamt + freight` |
+
+Example — correct revenue calculation:
+```sql
+SUM(d.orderqty * d.unitprice * (1.0 - d.unitpricediscount))  AS revenue
+```
+
+---
 ## Constraints
 
 - Write SELECT only — never INSERT, UPDATE, DELETE, or DDL.
 - Always verify column names in the wiki before using them.
 - Do not invent column names — the schema is documented; use it.
 - Flag any join that crosses schema boundaries as "no FK enforced — verify manually".
+- Never use `linetotal` or `totaldue` as column references — expand using the formulas above.
