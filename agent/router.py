@@ -24,6 +24,7 @@ Available skills:
 - get_customer_info: Get customer details (needs order_id or customer_id)
 - list_order_items: List items in an order (needs order_id)
 - check_inventory: Check product stock (needs product_id or order_id)
+- analyze_company_config: Show database structure, schemas, tables, columns, relationships (no params needed)
 
 Respond with JSON only, no other text:
 {
@@ -41,6 +42,7 @@ Rules:
 - If the user mentions an order, default domain to "sales"
 - If the user asks about a customer, default domain to "person"
 - If the user asks about stock/inventory, default domain to "production"
+- If the user asks about database structure, schemas, tables, columns, or "what data do we have", route to analyze_company_config with domain "cross-domain"
 - parameters should only contain IDs you can actually extract from the message
 """
 

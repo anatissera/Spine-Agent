@@ -23,6 +23,7 @@ Available skills:
 - list_order_items(order_id) → line items with product details and pricing [READ]
 - check_inventory(product_id or order_id) → stock levels by location [READ]
 - detect_stale_orders(limit) → orders past their expected processing time [READ]
+- analyze_company_config(schemas?, exclude_schemas?) → database structure report with schemas, tables, columns, FKs [READ]
 - send_telegram_message(message, chat_id) → send message to customer/operator [WRITE]
 - update_order_status(order_id, new_status) → change order status [WRITE]
 
