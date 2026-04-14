@@ -18,6 +18,42 @@ if "agent" not in st.session_state:
 
 agent = st.session_state.agent
 
+# ── Pending approval notification (if agent is waiting for approval) ─────────
+if agent._pending_execution and agent._pending_execution.approval_id:
+    pa = agent._pending_execution
+    st.markdown(
+        f'<div class="card card-accent-amber" style="padding:14px 20px">'
+        f'<div style="display:flex;align-items:center;gap:10px">'
+        f'<div style="font-size:1.3rem">&#9888;</div>'
+        f'<div style="flex:1">'
+        f'<div style="color:{COLORS["warning"]};font-weight:600;font-size:0.85rem">'
+        f'Approval needed</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem">'
+        f'The agent wants to execute: <strong>{pa.pending_approval["action_type"]}</strong></div>'
+        f'</div></div></div>',
+        unsafe_allow_html=True,
+    )
+    col_a, col_r, col_space = st.columns([1, 1, 4])
+    if col_a.button("Approve", type="primary", key="approval_approve"):
+        st.session_state.messages.append({"role": "user", "content": "approve"})
+        with st.chat_message("user"):
+            st.markdown("approve")
+        with st.chat_message("assistant"):
+            response = run_async(agent.handle_message("approve"))
+            st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.rerun()
+    if col_r.button("Reject", key="approval_reject"):
+        st.session_state.messages.append({"role": "user", "content": "reject"})
+        with st.chat_message("user"):
+            st.markdown("reject")
+        with st.chat_message("assistant"):
+            response = run_async(agent.handle_message("reject"))
+            st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.rerun()
+    st.markdown("")
+
 # ── Chat history ─────────────────────────────────────────────────────────────
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -60,7 +96,7 @@ if prompt := st.chat_input("Ask about an order, customer, or request an action..
 
     st.session_state.messages.append({"role": "assistant", "content": response})
 
-# ── Sidebar controls ────────────────────────────────────────────────────────
+# ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### Conversation")
     if st.button("Clear Chat", use_container_width=True):
@@ -68,14 +104,5 @@ with st.sidebar:
         from agent.core import SpineAgent
         st.session_state.agent = SpineAgent()
         st.rerun()
-
     st.markdown("")
-    st.markdown("### Approval Gate")
-    st.caption("Use these when the agent proposes a write action.")
-    c1, c2 = st.columns(2)
-    if c1.button("Approve", use_container_width=True, type="primary"):
-        st.session_state.messages.append({"role": "user", "content": "approve"})
-        st.rerun()
-    if c2.button("Reject", use_container_width=True):
-        st.session_state.messages.append({"role": "user", "content": "reject"})
-        st.rerun()
+    st.page_link("pages/5_Activity.py", label="View all activity & approvals")
