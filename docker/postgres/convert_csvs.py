@@ -18,14 +18,22 @@ import re
 # converted. These are NOT part of the SpineAgent spine. We truncate them to
 # empty files so the COPY loads 0 rows instead of crashing and aborting the
 # rest of the install.sql transaction.
-# Tables that fail CSV conversion due to binary blobs, XML, or encoding quirks.
-# None of these are part of the SpineAgent spine (SalesOrder → Product → Person).
-# We truncate them so COPY loads 0 rows and the init continues cleanly.
+# Tables that fail CSV conversion (binary blobs, XML quirks) OR that have FK
+# constraints referencing those empty tables — both cause psql ON_ERROR_STOP=1
+# to abort and prevent 02-spine-schema.sql from running.
+# None of these are part of the SpineAgent spine.
 SKIP_TABLES = {
+    # Source tables: binary/problematic content
     "Document.csv",             # Production.Document — OLE2 .doc binaries
     "ProductPhoto.csv",         # Production.ProductPhoto — image binaries
-    "ProductDescription.csv",   # Production.ProductDescription — format edge case row 97
+    "ProductDescription.csv",   # Production.ProductDescription — edge case row 97
     "Illustration.csv",         # Production.Illustration — large XML blobs
+
+    # Junction tables that FK → the empty tables above (would violate constraint)
+    "ProductDocument.csv",                     # FK → Document
+    "ProductProductPhoto.csv",                 # FK → ProductPhoto
+    "ProductModelProductDescriptionCulture.csv",  # FK → ProductDescription
+    "ProductModelIllustration.csv",            # FK → Illustration
 }
 
 
