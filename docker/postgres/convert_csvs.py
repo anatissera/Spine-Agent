@@ -18,9 +18,14 @@ import re
 # converted. These are NOT part of the SpineAgent spine. We truncate them to
 # empty files so the COPY loads 0 rows instead of crashing and aborting the
 # rest of the install.sql transaction.
-BINARY_TABLES = {
-    "Document.csv",      # Production.Document  — stores OLE2 .doc binaries
-    "ProductPhoto.csv",  # Production.ProductPhoto — stores image binaries
+# Tables that fail CSV conversion due to binary blobs, XML, or encoding quirks.
+# None of these are part of the SpineAgent spine (SalesOrder → Product → Person).
+# We truncate them so COPY loads 0 rows and the init continues cleanly.
+SKIP_TABLES = {
+    "Document.csv",             # Production.Document — OLE2 .doc binaries
+    "ProductPhoto.csv",         # Production.ProductPhoto — image binaries
+    "ProductDescription.csv",   # Production.ProductDescription — format edge case row 97
+    "Illustration.csv",         # Production.Illustration — large XML blobs
 }
 
 
@@ -71,7 +76,7 @@ if __name__ == "__main__":
     converted = skipped = cleared = 0
     for fname in csv_files:
         path = os.path.join(directory, fname)
-        if fname in BINARY_TABLES:
+        if fname in SKIP_TABLES:
             open(path, "w").close()  # truncate → COPY loads 0 rows
             cleared += 1
             print(f"  cleared    {fname} (binary table, not needed for spine)")
