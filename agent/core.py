@@ -1,8 +1,8 @@
 """Core Orchestrator — ties together routing, skills, context, and LLM response.
 
-Implements the Assist mode flow:
-  user message → router → skill selection → skill execution →
-  context store lookup → LLM response generation
+Supports two modes:
+  Assist: question → router → skill → context → LLM response
+  Act:    objective → planner → executor (READ auto, WRITE → approval gate)
 """
 
 from __future__ import annotations
@@ -13,6 +13,8 @@ import anthropic
 
 from agent.config import get_settings
 from agent.context_store import add_entry, get_entries_for_spine
+from agent.executor import ExecutionResult, execute_plan
+from agent.planner import Plan, create_plan
 from agent.router import RoutingResult, route
 from skills.registry import SkillRegistry
 
@@ -42,6 +44,8 @@ class SpineAgent:
     def __init__(self) -> None:
         self.registry = SkillRegistry()
         self._initialized = False
+        self._pending_plan: Plan | None = None
+        self._pending_execution: ExecutionResult | None = None
 
     async def _ensure_init(self) -> None:
         if not self._initialized:
@@ -51,25 +55,25 @@ class SpineAgent:
     async def handle_message(self, message: str) -> str:
         """Process a user message end-to-end and return a natural language response.
 
-        Flow:
-          1. Route the message (detect mode, domain, skill, params)
-          2. Execute the appropriate skill with extracted parameters
-          3. Fetch historical context from the context store
-          4. Generate a response with Claude using the real data
-          5. Save the interaction to the context store
+        Supports:
+          - Assist mode: question → skill → context → LLM response
+          - Act mode: objective → plan → execute (halt at WRITE for approval)
+          - Approval responses: 'approve' / 'reject' to continue a halted plan
         """
         await self._ensure_init()
+
+        # Handle approval responses for pending plans
+        lower = message.strip().lower()
+        if lower in ("approve", "aprobar", "si", "yes") and self._pending_execution:
+            return await self._handle_approval(approved=True)
+        if lower in ("reject", "rechazar", "no") and self._pending_execution:
+            return await self._handle_approval(approved=False)
 
         # 1. Route
         routing = await route(message)
 
         if routing.mode == "act":
-            return (
-                f"Modo Act detectado: {routing.summary}\n\n"
-                "El modo Act (planificación y ejecución de acciones) estará "
-                "disponible en M3. Por ahora solo funciona el modo Assist "
-                "(consultas de información)."
-            )
+            return await self._handle_act(message)
 
         # 2. Select and execute skill
         skill_result = await self._execute_skill(routing)
@@ -177,3 +181,52 @@ class SpineAgent:
             },
             source="agent",
         )
+
+    # ── Act Mode ─────────────────────────────────────────────────────────
+
+    async def _handle_act(self, message: str) -> str:
+        """Handle Act mode: plan → execute → halt at WRITE for approval."""
+        # 1. Create plan
+        plan = await create_plan(message)
+        self._pending_plan = plan
+
+        if not plan.steps:
+            return "No pude descomponer el objetivo en pasos ejecutables."
+
+        # 2. Execute the plan (will halt at first WRITE step)
+        result = await execute_plan(plan, self.registry)
+        self._pending_execution = result
+
+        # 3. Format response
+        parts = [f"**Plan:** {plan.objective}\n"]
+        parts.append(plan.format_for_human())
+        parts.append("\n---\n")
+        parts.append(result.format_for_human())
+
+        return "\n".join(parts)
+
+    async def _handle_approval(self, approved: bool) -> str:
+        """Handle approve/reject for a pending WRITE action."""
+        from agent.approval_gate import approve, reject
+
+        execution = self._pending_execution
+        if not execution or not execution.approval_id:
+            return "No hay acciones pendientes de aprobación."
+
+        approval_id = execution.approval_id
+
+        if approved:
+            await approve(approval_id)
+            self._pending_execution = None
+            self._pending_plan = None
+            return (
+                f"✅ Acción aprobada (approval #{approval_id}).\n\n"
+                "La acción fue registrada. La ejecución real de acciones WRITE "
+                "(envío de mensajes, actualizaciones) se completará cuando se "
+                "integren los MCP servers de Telegram/Tiendanube."
+            )
+        else:
+            await reject(approval_id)
+            self._pending_execution = None
+            self._pending_plan = None
+            return f"❌ Acción rechazada (approval #{approval_id}). No se ejecutará ninguna acción."
