@@ -14,8 +14,9 @@ class Settings(BaseSettings):
     # PostgreSQL
     database_url: str = "postgresql://postgres:postgres@localhost:5432/adventureworks"
 
-    # Embedding model dimensions (matches OpenAI text-embedding-3-small default)
+    # Embeddings
     embedding_dimensions: int = 1536
+    voyage_api_key: str = ""
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
