@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
 
     # PostgreSQL
-    database_url: str = "postgresql://postgres:postgres@localhost:5432/adventureworks"
+    database_url: str = "postgresql://postgres:postgres@localhost:5433/adventureworks"
 
     # Embeddings
     embedding_dimensions: int = 1536
