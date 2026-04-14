@@ -166,7 +166,6 @@ SUM(d.orderqty * d.unitprice * (1.0 - d.unitpricediscount))  AS revenue
 ```
 
 ---
-
 ## Constraints
 
 - Write SELECT only — never INSERT, UPDATE, DELETE, or DDL.
