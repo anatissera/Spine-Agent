@@ -12,7 +12,7 @@ Env:  DATABASE_URL
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import psycopg
 from psycopg.rows import dict_row
@@ -323,6 +323,270 @@ def get_pending_approval(approval_id: int) -> dict:
         return {"error": f"Approval {approval_id} not found"}
 
     return dict(row)
+
+
+# ── Restock Request tools ──────────────────────────────────────────────────────
+# These tools manage the lifecycle of a provider restock request.
+# The request is stored as a pending_approval row with
+# action_type='provider_restock_request' and all state in action_payload JSON.
+#
+# Escalation schedule (minutes between follow-ups):
+ESCALATION_SCHEDULE = [30, 60, 120, 240]
+
+
+def _next_followup_at(retry_count: int) -> str | None:
+    """Return ISO timestamp for next follow-up, or None if max retries exceeded."""
+    if retry_count >= len(ESCALATION_SCHEDULE):
+        return None
+    minutes = ESCALATION_SCHEDULE[retry_count]
+    return (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat()
+
+
+@mcp.tool()
+def create_restock_request(
+    product_name: str,
+    product_description: str,
+    price: float,
+    quantity: int,
+    provider_id: str,
+    sku: str = "",
+) -> dict:
+    """
+    Create a pending provider restock request. Stores it in pending_approvals
+    with action_type='provider_restock_request'.
+
+    Returns request_id (= approval_id) and the first next_followup_at timestamp
+    (now + 30 minutes). Present the approval to the operator and wait for
+    explicit confirmation before calling send_provider_request.
+
+    provider_id must match a key in config/providers.yaml (e.g. 'bike_provider').
+    """
+    now = datetime.now(timezone.utc)
+    action_payload = {
+        "request_type": "provider_restock_request",
+        "product": {
+            "name": product_name,
+            "description": product_description,
+            "price": price,
+            "quantity_requested": quantity,
+            "sku": sku,
+        },
+        "provider": {
+            "id": provider_id,
+        },
+        "telegram": {
+            "sent_messages": [],
+            "last_update_id": 0,
+        },
+        "escalation": {
+            "retry_count": 0,
+            "schedule_minutes": ESCALATION_SCHEDULE,
+            "next_followup_at": _next_followup_at(0),
+            "started_at": now.isoformat(),
+        },
+    }
+
+    with _conn() as conn:
+        row = conn.execute("""
+            INSERT INTO spine_agent.pending_approvals
+                (spine_object_id, action_type, action_payload, context, expires_at)
+            VALUES (%s, 'provider_restock_request', %s, %s, NOW() + INTERVAL '8 hours')
+            RETURNING id, created_at, expires_at
+        """, (
+            f"Product:restock:{product_name}",
+            json.dumps(action_payload),
+            json.dumps({"why": f"User wants to publish '{product_name}' — needs stock confirmation from {provider_id}"}),
+        )).fetchone()
+        conn.commit()
+
+    return {
+        "request_id": row["id"],
+        "approval_id": row["id"],
+        "status": "pending_operator_approval",
+        "product": product_name,
+        "provider_id": provider_id,
+        "quantity": quantity,
+        "price": price,
+        "next_followup_at": action_payload["escalation"]["next_followup_at"],
+        "expires_at": row["expires_at"].isoformat(),
+        "instruction": (
+            f"Restock request #{row['id']} created. Show this to the operator and "
+            "wait for APPROVE before calling send_provider_request."
+        ),
+    }
+
+
+@mcp.tool()
+def get_restock_request(request_id: int) -> dict:
+    """
+    Fetch the full current state of a restock request.
+    Returns product details, provider, telegram state, and escalation schedule.
+    Call this to check whether a response has been received or whether a
+    follow-up is due (compare next_followup_at to current time).
+    """
+    with _conn() as conn:
+        row = conn.execute("""
+            SELECT id, spine_object_id, action_payload, status,
+                   created_at, expires_at, decided_at, decision_note
+            FROM spine_agent.pending_approvals
+            WHERE id = %s AND action_type = 'provider_restock_request'
+        """, (request_id,)).fetchone()
+
+    if not row:
+        return {"error": f"Restock request {request_id} not found"}
+
+    payload = row["action_payload"]
+    now = datetime.now(timezone.utc)
+    next_followup = payload["escalation"].get("next_followup_at")
+
+    is_followup_due = False
+    if next_followup and row["status"] == "pending":
+        from datetime import datetime as dt
+        try:
+            followup_dt = dt.fromisoformat(next_followup)
+            is_followup_due = now > followup_dt
+        except ValueError:
+            pass
+
+    return {
+        "request_id": row["id"],
+        "status": row["status"],
+        "product": payload["product"],
+        "provider": payload["provider"],
+        "telegram": payload["telegram"],
+        "escalation": payload["escalation"],
+        "is_followup_due": is_followup_due,
+        "created_at": row["created_at"].isoformat(),
+        "expires_at": row["expires_at"].isoformat() if row["expires_at"] else None,
+        "decided_at": row["decided_at"].isoformat() if row["decided_at"] else None,
+        "decision_note": row["decision_note"],
+    }
+
+
+@mcp.tool()
+def update_restock_state(
+    request_id: int,
+    last_telegram_update_id: int,
+    new_retry_count: int,
+    telegram_message_id: int = 0,
+) -> dict:
+    """
+    Update the escalation state of a restock request after a follow-up is sent
+    or a Telegram update is read.
+
+    - last_telegram_update_id: the update_id returned by poll_provider_response
+    - new_retry_count: current retry_count + 1 (or same if just reading updates)
+    - telegram_message_id: message_id of the new follow-up sent (0 if not sending)
+
+    Auto-computes next_followup_at from the escalation schedule.
+    Returns None for next_followup_at when max retries are exceeded (cancel instead).
+    """
+    with _conn() as conn:
+        row = conn.execute("""
+            SELECT action_payload FROM spine_agent.pending_approvals
+            WHERE id = %s
+        """, (request_id,)).fetchone()
+
+        if not row:
+            return {"error": f"Request {request_id} not found"}
+
+        payload = row["action_payload"]
+        payload["telegram"]["last_update_id"] = last_telegram_update_id
+
+        if telegram_message_id:
+            payload["telegram"]["sent_messages"].append({
+                "message_id": telegram_message_id,
+                "sent_at": datetime.now(timezone.utc).isoformat(),
+                "retry_number": new_retry_count,
+            })
+
+        next_followup = _next_followup_at(new_retry_count)
+        payload["escalation"]["retry_count"] = new_retry_count
+        payload["escalation"]["next_followup_at"] = next_followup
+
+        conn.execute("""
+            UPDATE spine_agent.pending_approvals
+            SET action_payload = %s
+            WHERE id = %s
+        """, (json.dumps(payload), request_id))
+        conn.commit()
+
+    return {
+        "request_id": request_id,
+        "retry_count": new_retry_count,
+        "next_followup_at": next_followup,
+        "max_retries_reached": next_followup is None,
+        "instruction": (
+            "Call cancel_restock_request — max wait time reached."
+            if next_followup is None else
+            f"Next check due at {next_followup}."
+        ),
+    }
+
+
+@mcp.tool()
+def cancel_restock_request(request_id: int, reason: str) -> dict:
+    """
+    Cancel a restock request — either because the provider rejected it, the
+    escalation timeout was reached, or the user cancelled manually.
+    Sets status to 'expired' and records the reason.
+    """
+    with _conn() as conn:
+        row = conn.execute("""
+            UPDATE spine_agent.pending_approvals
+            SET status       = 'expired',
+                decision_note = %s,
+                decided_at   = NOW()
+            WHERE id = %s AND action_type = 'provider_restock_request'
+            RETURNING id, status
+        """, (reason, request_id)).fetchone()
+        conn.commit()
+
+    if not row:
+        return {"error": f"Restock request {request_id} not found or already decided"}
+
+    return {
+        "request_id": row["id"],
+        "status": "expired",
+        "reason": reason,
+        "cancelled_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@mcp.tool()
+def confirm_restock_request(request_id: int, provider_response: str) -> dict:
+    """
+    Mark a restock request as approved (provider confirmed stock availability).
+    Call this after poll_provider_response returns response_type='confirmed'.
+    Returns the product payload needed to call tiendanube.create_product.
+    """
+    with _conn() as conn:
+        row = conn.execute("""
+            UPDATE spine_agent.pending_approvals
+            SET status        = 'approved',
+                approved_by   = 'provider',
+                decision_note = %s,
+                decided_at    = NOW()
+            WHERE id = %s AND action_type = 'provider_restock_request'
+            RETURNING id, action_payload
+        """, (provider_response, request_id)).fetchone()
+        conn.commit()
+
+    if not row:
+        return {"error": f"Restock request {request_id} not found or already decided"}
+
+    product = row["action_payload"]["product"]
+    return {
+        "request_id": row["id"],
+        "status": "approved",
+        "provider_response": provider_response,
+        "product_to_publish": product,
+        "instruction": (
+            "Provider confirmed. Create a new pending approval with "
+            "action_type='tiendanube_create_product', get operator sign-off, "
+            "then call tiendanube.create_product with the product details."
+        ),
+    }
 
 
 if __name__ == "__main__":

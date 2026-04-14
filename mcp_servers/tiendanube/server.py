@@ -205,6 +205,81 @@ def get_store_info() -> dict:
         return r.json()
 
 
+@mcp.tool()
+def create_product(
+    name: str,
+    description: str,
+    price: float,
+    stock: int,
+    approval_id: int,
+    sku: str = "",
+) -> dict:
+    """
+    Publish a new product on the Tiendanube store.
+
+    WRITE action — requires approval_id from a pending_approval with
+    action_type='tiendanube_create_product'. The operator must have approved
+    the publication before this is called.
+
+    name:        product display name (used for the 'es' locale)
+    description: product description (used for the 'es' locale)
+    price:       sale price (numeric)
+    stock:       initial stock quantity
+    sku:         optional stock-keeping unit identifier
+    approval_id: must be a valid approved pending_approval ID
+
+    Returns the new product's Tiendanube ID and storefront permalink.
+    """
+    if not approval_id:
+        return {
+            "error": "approval_id required. Create a pending approval with "
+                     "action_type='tiendanube_create_product' and get operator sign-off first."
+        }
+
+    if MOCK:
+        import random
+        fake_id = random.randint(10000, 99999)
+        slug = name.lower().replace(" ", "-")
+        return {
+            "id": fake_id,
+            "name": {"es": name},
+            "description": {"es": description},
+            "variants": [{"price": str(price), "stock": stock, "sku": sku or f"AUTO-{fake_id}"}],
+            "permalink": f"https://demo-store.mitiendanube.com/productos/{slug}",
+            "status": "active",
+            "approval_id_used": approval_id,
+            "mode": "mock — set TIENDANUBE_MOCK=false to publish to real store",
+        }
+
+    body = {
+        "name": {"es": name},
+        "description": {"es": description},
+        "variants": [
+            {
+                "price": str(price),
+                "stock": stock,
+                **({"sku": sku} if sku else {}),
+            }
+        ],
+    }
+
+    with httpx.Client(timeout=15.0) as client:
+        r = client.post(f"{BASE_URL}/products", headers=HEADERS, json=body)
+        if r.status_code in (400, 422):
+            return {"error": f"Tiendanube validation error: {r.json()}"}
+        r.raise_for_status()
+        data = r.json()
+
+    return {
+        "id": data["id"],
+        "name": data.get("name", {}).get("es", name),
+        "permalink": data.get("permalink", ""),
+        "variants": data.get("variants", []),
+        "status": "published",
+        "approval_id_used": approval_id,
+    }
+
+
 if __name__ == "__main__":
     if MOCK:
         print("[tiendanube] Running in MOCK mode — no real API calls will be made")

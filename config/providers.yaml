@@ -1,0 +1,16 @@
+# SpineAgent — Provider Directory
+# Maps supplier identities to their Telegram contact and product scope.
+# Used by the restock-and-publish skill to route requests to the right provider.
+
+providers:
+  bike_provider:
+    name: BikeProvider
+    telegram_chat_id: "your-chat-id-here"
+    language: "es"
+    categories:
+      - bikes
+      - accessories
+      - cycling
+      - components
+      - frames
+    note: "Main bike and accessories supplier"

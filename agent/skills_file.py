@@ -136,13 +136,14 @@ class SkillsRegistry:
     def _scan(self) -> None:
         if not self._dir.is_dir():
             return
-        for child in sorted(self._dir.iterdir()):
-            if child.is_dir() and (child / "SKILL.md").exists():
-                entry = SkillEntry(child)
-                self._by_name[entry.name] = entry
-                # Also register by folder name in case they differ
-                if child.name != entry.name:
-                    self._by_name[child.name] = entry
+        # rglob finds SKILL.md at any depth, supporting domain sub-folders
+        # e.g. skills/aw/sql-writer/SKILL.md and skills/tiendanube/restock-and-publish/SKILL.md
+        for skill_md in sorted(self._dir.rglob("SKILL.md")):
+            skill_dir = skill_md.parent
+            entry = SkillEntry(skill_dir)
+            self._by_name[entry.name] = entry
+            if skill_dir.name != entry.name:
+                self._by_name[skill_dir.name] = entry
 
     # ------------------------------------------------------------------
     # System-prompt integration
