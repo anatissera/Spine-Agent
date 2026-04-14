@@ -1,7 +1,8 @@
-"""Executor — runs a plan's skill chain, halting at WRITE steps for approval.
+"""Executor — runs a plan's skill chain, halting before production-affecting actions.
 
-Executes READ steps autonomously.  When a WRITE step is reached, creates a
-pending approval in the gate and stops.  The caller (CLI or API) must then
+Internal steps (query, draft, test, store) execute autonomously.  When a step
+would affect production (send message to customer, mutate live system), creates
+a pending approval in the gate and stops.  The caller (CLI or API) must then
 present the approval to the human, and resume execution after approval.
 """
 
@@ -61,8 +62,8 @@ async def execute_plan(
 ) -> ExecutionResult:
     """Execute a plan's steps sequentially.
 
-    READ steps run autonomously.  At the first WRITE step, execution halts
-    and a pending approval is created.
+    Internal steps run autonomously.  At the first production-affecting step,
+    execution halts and a pending approval is created.
 
     Args:
         plan: The plan to execute.
@@ -87,7 +88,7 @@ async def execute_plan(
         # (e.g., customer phone from step 1 becomes available in step 2)
         merged_params = {**accumulated_context, **params}
 
-        # WRITE step → halt for approval
+        # Production-affecting step → halt for approval
         if classification == "WRITE" or requires_approval(skill_name):
             approval_id = await create_approval(
                 spine_object_id=plan.spine_object_id or "unknown",
@@ -107,7 +108,7 @@ async def execute_plan(
             result.approval_id = approval_id
             return result
 
-        # READ step → execute autonomously
+        # Internal step → execute autonomously
         skill = await registry.get(skill_name)
         if skill is None:
             result.error = f"Skill '{skill_name}' not found in registry"
