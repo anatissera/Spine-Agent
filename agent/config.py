@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # Embedding model dimensions (matches OpenAI text-embedding-3-small default)
     embedding_dimensions: int = 1536
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 @lru_cache

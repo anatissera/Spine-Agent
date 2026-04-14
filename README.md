@@ -37,6 +37,7 @@ First build takes a few minutes (downloads CSVs + converts them).
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+pip install -e .
 ```
 
 ### 4. Verify everything works
