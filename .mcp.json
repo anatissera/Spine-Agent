@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "spineagent": {
+      "command": "python",
+      "args": ["mcp_servers/spine/server.py"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}"
+      }
+    },
+    "tiendanube": {
+      "command": "python",
+      "args": ["mcp_servers/tiendanube/server.py"],
+      "env": {
+        "TIENDANUBE_STORE_ID": "${TIENDANUBE_STORE_ID}",
+        "TIENDANUBE_ACCESS_TOKEN": "${TIENDANUBE_ACCESS_TOKEN}",
+        "TIENDANUBE_MOCK": "${TIENDANUBE_MOCK}"
+      }
+    },
+    "telegram": {
+      "command": "python",
+      "args": ["mcp_servers/telegram/server.py"],
+      "env": {
+        "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}",
+        "TELEGRAM_OPERATOR_CHAT_ID": "${TELEGRAM_OPERATOR_CHAT_ID}"
+      }
+    }
+  }
+}
