@@ -2,6 +2,7 @@
 
 from skills.base_skill import BaseSkill
 from skills.builtin.check_inventory import CheckInventory
+from skills.builtin.detect_stale_orders import DetectStaleOrders
 from skills.builtin.get_customer_info import GetCustomerInfo
 from skills.builtin.list_order_items import ListOrderItems
 from skills.builtin.query_order_status import QueryOrderStatus
@@ -14,4 +15,5 @@ def get_all_builtin_skills() -> list[BaseSkill]:
         GetCustomerInfo(),
         ListOrderItems(),
         CheckInventory(),
+        DetectStaleOrders(),
     ]
