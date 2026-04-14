@@ -1,6 +1,7 @@
 """Built-in skills for SpineAgent."""
 
 from skills.base_skill import BaseSkill
+from skills.builtin.analyze_company_config.skill import AnalyzeCompanyConfig
 from skills.builtin.check_inventory import CheckInventory
 from skills.builtin.detect_stale_orders import DetectStaleOrders
 from skills.builtin.get_customer_info import GetCustomerInfo
@@ -16,4 +17,5 @@ def get_all_builtin_skills() -> list[BaseSkill]:
         ListOrderItems(),
         CheckInventory(),
         DetectStaleOrders(),
+        AnalyzeCompanyConfig(),
     ]

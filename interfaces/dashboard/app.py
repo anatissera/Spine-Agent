@@ -29,14 +29,15 @@ with st.sidebar:
 # ── Hero ─────────────────────────────────────────────────────────────────────
 st.markdown("")
 st.markdown(
-    '<div class="hero-title">Your business runs on<br>one operational object.</div>',
+    '<div class="hero-title">An agent that infers<br>how your enterprise works.</div>',
     unsafe_allow_html=True,
 )
 st.markdown(
     '<div class="hero-subtitle" style="max-width:560px">'
-    'A multi-agent system that understands the structural topology of your business. '
-    'It queries, reasons, plans, learns, and acts '
-    '— while humans stay in control.'
+    'SpineAgent connects to your business systems, discovers the entity that concentrates '
+    'cross-domain complexity, and builds an operational understanding of your enterprise. '
+    'It reads, reasons, plans, tests, and acts autonomously '
+    '— and asks for approval only before touching production.'
     '</div>',
     unsafe_allow_html=True,
 )
@@ -68,13 +69,14 @@ with right:
         '<div class="feature-title" style="color:#4f8ff7">SpineAgent</div>'
         '<div class="feature-desc" style="font-size:0.88rem;line-height:1.7">'
         'A multi-agent system built on the concept of the <strong>operational spine</strong> '
-        '— the root entity with the highest density of cross-domain references. '
+        ': the root entity with the highest density of cross-domain references. '
         'SpineAgent reconstructs the unified state of this object from multiple sources, '
         'reasons over its relationships, and <strong>autonomously plans and executes sequences of actions</strong> '
-        'by selecting from a registry of skills — or generating new ones on the fly '
+        'by selecting from a registry of skills, or generating new ones on the fly '
         'when no existing capability matches. '
         'The human shifts from being the <strong>relay</strong> to being the <strong>approver</strong>. '
-        'Every read operation is autonomous. Every write operation requires explicit approval.</div>'
+        'When an action would <strong>affect production</strong> — sending a message to a customer, '
+        'updating a live order — it halts and presents the full context for human approval.</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -99,7 +101,7 @@ with m1:
         'An operator asks a question. The router classifies intent and domain, '
         'activates the matching skill, queries the spine, enriches with context store history, '
         'and generates a response grounded in real data. '
-        'No hallucination — every answer is backed by a SQL query.'
+        'Every answer is backed by a SQL query.'
         '</div></div>',
         unsafe_allow_html=True,
     )
@@ -109,9 +111,10 @@ with m2:
         '<div class="feature-card card-accent-green">'
         '<div class="feature-title" style="font-size:1.05rem">Act</div>'
         '<div class="feature-desc" style="line-height:1.6">'
-        'An operator gives an objective. The planner decomposes it into an ordered chain of skills '
-        'with READ/WRITE classification. The executor runs READ steps autonomously, '
-        'then halts at the first WRITE with a pending approval containing full context. '
+        'An operator gives an objective. The planner decomposes it into an ordered chain of skills. '
+        'The executor runs internal steps autonomously — querying, reasoning, drafting, testing. '
+        'When a step would affect production (send a message, update a live system), '
+        'the agent halts with a pending approval containing full context. '
         'The human reviews, approves or rejects. The agent proceeds or stands down.'
         '</div></div>',
         unsafe_allow_html=True,
@@ -148,9 +151,9 @@ with d1:
         f'<div style="color:{COLORS["primary"]};font-weight:700;font-size:0.95rem;margin-bottom:6px">'
         'Persistent context store</div>'
         f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem;line-height:1.6">'
-        'Every decision, action result, and state snapshot is stored in PostgreSQL '
-        'with vector embeddings for semantic retrieval. The agent accumulates institutional '
-        'memory that compounds over time.</div>'
+        'Every decision, action result, and state snapshot is stored autonomously in PostgreSQL '
+        'with vector embeddings for semantic retrieval. The agent builds institutional '
+        'memory that compounds over time — learning how the enterprise operates.</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -174,9 +177,10 @@ with d3:
         f'<div style="color:{COLORS["warning"]};font-weight:700;font-size:0.95rem;margin-bottom:6px">'
         'Human-in-the-loop gate</div>'
         f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem;line-height:1.6">'
-        'Read = autonomous. Write = requires explicit approval. '
-        'Not a transitional limitation — the permanent trust mechanism '
-        'that allows safe, incremental delegation of operational work.</div>'
+        'The agent reads, drafts, and tests autonomously. '
+        'Only actions that affect production — sending a message, mutating a live system — '
+        'require explicit approval. Not a transitional limitation — the permanent trust '
+        'mechanism that lets the agent work freely without breaking anything.</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -235,23 +239,26 @@ with st.expander("Architecture deep dive"):
         f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
         'Multi-agent architecture</div>'
         f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
-        'SpineAgent is not a single prompt chain. It is a system of specialized components '
-        'that collaborate: a <strong>router</strong> classifies intent and selects the execution mode. '
-        'A <strong>planner</strong> decomposes complex objectives into skill chains using Claude. '
-        'An <strong>executor</strong> runs the chain with autonomous/gated classification per step. '
-        'A <strong>monitor</strong> runs independently on a schedule. '
-        'And the <strong>AutoSkill loop</strong> generates, validates, and registers new capabilities. '
-        'Each component is independently testable and replaceable.</div></div>'
+        'SpineAgent is not a single prompt chain — it is a system that <strong>infers how your '
+        'enterprise operates</strong>. A <strong>router</strong> classifies intent and domain from natural language. '
+        'A <strong>planner</strong> decomposes objectives into skill chains, reasoning about which steps '
+        'are internal (autonomous) and which affect production (require approval). '
+        'An <strong>executor</strong> runs the chain, halting only before production impact. '
+        'A <strong>monitor</strong> continuously scans for anomalies. '
+        'And the <strong>AutoSkill loop</strong> generates new capabilities when the agent encounters '
+        'operations it doesn\'t yet know how to perform — codifying enterprise knowledge over time.</div></div>'
 
         # Spine
         f'<div class="card" style="margin-bottom:16px">'
         f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
         'The Spine Object</div>'
         f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
-        'A unified Pydantic model that reconstructs a SalesOrder from 10+ tables '
-        'across 4 schemas (Sales, Production, Person, Purchasing) via 3 parameterized SQL queries. '
+        'The agent identifies the entity with the highest density of cross-domain references '
+        '— in this enterprise, the SalesOrder — and reconstructs it from 10+ tables '
+        'across 4 schemas (Sales, Production, Person, Purchasing). '
         'Customer info, addresses, line items with margins, inventory levels per product — '
-        'one call, complete cross-domain context.</div></div>'
+        'one call, complete cross-domain context. '
+        'The spine is not configured — it is <strong>inferred</strong> from the data topology.</div></div>'
 
         # Context Store
         f'<div class="card" style="margin-bottom:16px">'
@@ -259,30 +266,32 @@ with st.expander("Architecture deep dive"):
         'Context Store</div>'
         f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
         'PostgreSQL + pgvector. Every decision, action result, pattern, and state snapshot '
-        'is stored with a 1536-dim vector embedding. Supports both semantic search '
+        'is stored with a 1536-dim vector embedding. The agent writes here autonomously — '
+        'this is internal memory, not a production action. Supports semantic search '
         '(\"find similar situations\") and structured queries (\"all actions on order #43659\"). '
-        'This is not session memory — it is persistent institutional knowledge.</div></div>'
+        'Over time, the agent builds persistent institutional knowledge about how the enterprise operates.</div></div>'
 
         # Approval Gate
         f'<div class="card" style="margin-bottom:16px">'
         f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
         'Approval Gate</div>'
         f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
-        'Every write action creates a pending approval record in PostgreSQL with full context: '
-        'what the action is, why it was proposed, the data behind it, and a 2-hour expiry. '
-        'Approvals appear as notifications on the Activity page and as banners in Chat. '
-        'The human approves, rejects, or lets it expire. The agent proceeds or stands down.</div></div>'
+        'When the agent plans an action that would affect production — sending a customer message, '
+        'updating an order in a live system — it creates a pending approval record in PostgreSQL '
+        'with full context: what the action is, why it was proposed, the data behind it, '
+        'and a 2-hour expiry. Internal operations (queries, drafts, tests, context storage) '
+        'run autonomously. The human approves, rejects, or lets it expire.</div></div>'
 
         # Demo
         f'<div class="card" style="margin-bottom:0">'
         f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
         'This demo</div>'
         f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
-        'Running on <strong>AdventureWorks OLTP</strong> — 31,000+ orders, 19,000+ customers, '
-        '500+ products. The spine object is a SalesOrder. '
-        'Every response in this dashboard comes from live SQL queries against real data, '
-        'processed by Claude via the Anthropic API. Nothing is mocked. '
-        'Integrations with Tiendanube (e-commerce) and Telegram (messaging) via MCP servers.</div></div>'
+        'Running on <strong>Adventure Works Cycles</strong>, a manufacturing company '
+        'with 31,000+ orders, 19,000+ customers, and 500+ products. '
+        'The agent inferred that the SalesOrder is the operational spine. '
+        'Every response comes from live SQL queries against real data, '
+        'processed by Claude via the Anthropic API.</div></div>'
 
         '</div>',
         unsafe_allow_html=True,
