@@ -229,13 +229,6 @@ GLOBAL_CSS = """
         line-height: 1.5;
     }
 
-    /* ── Divider ── */
-    hr {
-        border: none;
-        border-top: 1px solid #1e293b;
-        margin: 2rem 0;
-    }
-
     /* ── Hide Streamlit branding ── */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
