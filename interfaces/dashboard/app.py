@@ -70,8 +70,9 @@ with right:
         'A multi-agent system built on the concept of the <strong>operational spine</strong> '
         '— the root entity with the highest density of cross-domain references. '
         'SpineAgent reconstructs the unified state of this object from multiple sources, '
-        'reasons over its relationships, plans sequences of actions, '
-        'and executes them autonomously. '
+        'reasons over its relationships, and <strong>autonomously plans and executes sequences of actions</strong> '
+        'by selecting from a registry of skills — or generating new ones on the fly '
+        'when no existing capability matches. '
         'The human shifts from being the <strong>relay</strong> to being the <strong>approver</strong>. '
         'Every read operation is autonomous. Every write operation requires explicit approval.</div>'
         '</div>',
