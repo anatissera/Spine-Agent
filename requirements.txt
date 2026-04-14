@@ -8,10 +8,10 @@ pydantic>=2.9.0
 pydantic-settings>=2.6.0
 python-dotenv>=1.0.0
 
-# Async HTTP
+# HTTP (MCP servers use this for Tiendanube + Telegram API calls)
 httpx>=0.27.0
 
-# MCP SDK
+# MCP SDK (FastMCP is bundled inside mcp>=1.0.0)
 mcp>=1.0.0
 
 # Scheduler (Monitor mode)
