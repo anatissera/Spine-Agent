@@ -20,14 +20,15 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("tiendanube")
 
-STORE_ID = os.environ.get("TIENDANUBE_STORE_ID", "")
-TOKEN    = os.environ.get("TIENDANUBE_ACCESS_TOKEN", "")
-MOCK     = os.environ.get("TIENDANUBE_MOCK", "false").lower() == "true"
+STORE_ID    = os.environ.get("TIENDANUBE_STORE_ID", "")
+TOKEN       = os.environ.get("TIENDANUBE_ACCESS_TOKEN", "")
+MOCK        = os.environ.get("TIENDANUBE_MOCK", "false").lower() == "true"
+API_VERSION = os.environ.get("TIENDANUBE_API_VERSION", "2025-03")
 
-BASE_URL = f"https://api.tiendanube.com/v1/{STORE_ID}"
+BASE_URL = f"https://api.tiendanube.com/{API_VERSION}/{STORE_ID}"
 HEADERS  = {
     "Authentication": f"bearer {TOKEN}",
-    "User-Agent": "SpineAgent/1.0 (hackathon)",
+    "User-Agent": "SpineAgent/1.0 (demo@spineagent.dev)",
     "Content-Type": "application/json",
 }
 
@@ -149,6 +150,9 @@ def list_orders(
 
     with httpx.Client(timeout=10.0) as client:
         r = client.get(f"{BASE_URL}/orders", headers=HEADERS, params=params)
+        # Tiendanube returns 404 {"description": "Last page is 0"} for empty collections
+        if r.status_code == 404:
+            return []
         r.raise_for_status()
         return r.json()
 
