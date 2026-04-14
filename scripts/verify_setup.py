@@ -38,7 +38,7 @@ def main():
 
     # --- Database checks ---
     print("1. Database connectivity")
-    conn = psycopg.connect(settings.database_url)
+    conn = psycopg.connect(settings.database_url, autocommit=True)
 
     check(
         "PostgreSQL version",
