@@ -26,16 +26,17 @@ with st.sidebar:
     st.divider()
     st.caption("Anthropic Hackathon 2026")
 
-# ── Hero: short, punchy ─────────────────────────────────────────────────────
+# ── Hero ─────────────────────────────────────────────────────────────────────
 st.markdown("")
 st.markdown(
-    '<div class="hero-title">The AI that operates<br>your business.</div>',
+    '<div class="hero-title">Your business runs on<br>one operational object.</div>',
     unsafe_allow_html=True,
 )
 st.markdown(
-    '<div class="hero-subtitle" style="max-width:520px">'
-    'An autonomous agent that understands the structure of your business, '
-    'not just the text. It queries, reasons, plans, learns, and acts.'
+    '<div class="hero-subtitle" style="max-width:560px">'
+    'A multi-agent system that understands the structural topology of your business. '
+    'It queries, reasons, plans, learns, and acts '
+    '— while humans stay in control.'
     '</div>',
     unsafe_allow_html=True,
 )
@@ -43,7 +44,146 @@ st.markdown(
 st.markdown("")
 st.markdown("")
 
-# ── Live numbers (the wow factor) ───────────────────────────────────────────
+# ── Problem → Solution ──────────────────────────────────────────────────────
+left, right = st.columns(2)
+
+with left:
+    st.markdown(
+        '<div class="card card-accent-red">'
+        '<div class="feature-title" style="color:#ef4444">The problem</div>'
+        '<div class="feature-desc" style="font-size:0.88rem;line-height:1.7">'
+        'Every organization has one entity that concentrates cross-domain complexity '
+        '— an order, a deal, a case, a policy. It touches Sales, Production, Purchasing, '
+        'Customer Service, Logistics. Today, <strong>people</strong> are the integration layer: '
+        'they check status in one system, look up a customer in another, verify inventory in a third, '
+        'then manually relay the result. This doesn\'t scale, it\'s error-prone, '
+        'and institutional knowledge walks out the door when someone leaves.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+with right:
+    st.markdown(
+        '<div class="card card-accent-blue">'
+        '<div class="feature-title" style="color:#4f8ff7">SpineAgent</div>'
+        '<div class="feature-desc" style="font-size:0.88rem;line-height:1.7">'
+        'A multi-agent system built on the concept of the <strong>operational spine</strong> '
+        '— the root entity with the highest density of cross-domain references. '
+        'SpineAgent reconstructs the unified state of this object from multiple sources, '
+        'reasons over its relationships, plans sequences of actions, '
+        'and executes them autonomously. '
+        'The human shifts from being the <strong>relay</strong> to being the <strong>approver</strong>. '
+        'Every read operation is autonomous. Every write operation requires explicit approval.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+st.markdown("")
+st.markdown("")
+
+# ── Three modes ──────────────────────────────────────────────────────────────
+st.markdown(
+    f'<div style="color:{COLORS["text_dim"]};font-size:0.75rem;text-transform:uppercase;'
+    f'letter-spacing:0.08em;font-weight:600;margin-bottom:12px">Three modes of operation</div>',
+    unsafe_allow_html=True,
+)
+
+m1, m2, m3 = st.columns(3)
+
+with m1:
+    st.markdown(
+        '<div class="feature-card card-accent-blue">'
+        '<div class="feature-title" style="font-size:1.05rem">Assist</div>'
+        '<div class="feature-desc" style="line-height:1.6">'
+        'An operator asks a question. The router classifies intent and domain, '
+        'activates the matching skill, queries the spine, enriches with context store history, '
+        'and generates a response grounded in real data. '
+        'No hallucination — every answer is backed by a SQL query.'
+        '</div></div>',
+        unsafe_allow_html=True,
+    )
+
+with m2:
+    st.markdown(
+        '<div class="feature-card card-accent-green">'
+        '<div class="feature-title" style="font-size:1.05rem">Act</div>'
+        '<div class="feature-desc" style="line-height:1.6">'
+        'An operator gives an objective. The planner decomposes it into an ordered chain of skills '
+        'with READ/WRITE classification. The executor runs READ steps autonomously, '
+        'then halts at the first WRITE with a pending approval containing full context. '
+        'The human reviews, approves or rejects. The agent proceeds or stands down.'
+        '</div></div>',
+        unsafe_allow_html=True,
+    )
+
+with m3:
+    st.markdown(
+        '<div class="feature-card card-accent-amber">'
+        '<div class="feature-title" style="font-size:1.05rem">Monitor</div>'
+        '<div class="feature-desc" style="line-height:1.6">'
+        'A scheduled process scans the spine continuously for anomalies: '
+        'orders stuck beyond configurable thresholds, overdue shipments, inventory gaps. '
+        'When something deviates from expected state, the agent generates an alert '
+        'and routes it to the right channel — before anyone needs to ask.'
+        '</div></div>',
+        unsafe_allow_html=True,
+    )
+
+st.markdown("")
+st.markdown("")
+
+# ── What makes it different ─────────────────────────────────────────────────
+st.markdown(
+    f'<div style="color:{COLORS["text_dim"]};font-size:0.75rem;text-transform:uppercase;'
+    f'letter-spacing:0.08em;font-weight:600;margin-bottom:12px">What makes this different</div>',
+    unsafe_allow_html=True,
+)
+
+d1, d2, d3 = st.columns(3)
+
+with d1:
+    st.markdown(
+        '<div class="card" style="padding:20px">'
+        f'<div style="color:{COLORS["primary"]};font-weight:700;font-size:0.95rem;margin-bottom:6px">'
+        'Persistent context store</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem;line-height:1.6">'
+        'Every decision, action result, and state snapshot is stored in PostgreSQL '
+        'with vector embeddings for semantic retrieval. The agent accumulates institutional '
+        'memory that compounds over time.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+with d2:
+    st.markdown(
+        '<div class="card" style="padding:20px">'
+        f'<div style="color:{COLORS["success"]};font-weight:700;font-size:0.95rem;margin-bottom:6px">'
+        'AutoSkill generation</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem;line-height:1.6">'
+        'When no skill matches a request, Claude generates Python code for a new one, '
+        'validates it in a sandbox, and persists it in the registry. '
+        'The skill library becomes codified operational knowledge.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+with d3:
+    st.markdown(
+        '<div class="card" style="padding:20px">'
+        f'<div style="color:{COLORS["warning"]};font-weight:700;font-size:0.95rem;margin-bottom:6px">'
+        'Human-in-the-loop gate</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem;line-height:1.6">'
+        'Read = autonomous. Write = requires explicit approval. '
+        'Not a transitional limitation — the permanent trust mechanism '
+        'that allows safe, incremental delegation of operational work.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+st.markdown("")
+st.markdown("")
+
+# ── Live system numbers ──────────────────────────────────────────────────────
 try:
     from agent.db import get_connection
 
@@ -63,12 +203,18 @@ try:
 
     orders, customers, products, skills, context = run_async(get_stats())
 
+    st.markdown(
+        f'<div style="color:{COLORS["text_dim"]};font-size:0.75rem;text-transform:uppercase;'
+        f'letter-spacing:0.08em;font-weight:600;margin-bottom:12px">Live system</div>',
+        unsafe_allow_html=True,
+    )
+
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Orders Managed", f"{orders['cnt']:,}")
-    c2.metric("Total Revenue", format_currency(orders['total']))
-    c3.metric("Avg Order Value", format_currency(orders['avg']))
+    c1.metric("Orders", f"{orders['cnt']:,}")
+    c2.metric("Revenue", format_currency(orders['total']))
+    c3.metric("Avg Order", format_currency(orders['avg']))
     c4.metric("Customers", f"{customers['cnt']:,}")
-    c5.metric("Agent Skills", f"{skills['cnt']}")
+    c5.metric("Skills", f"{skills['cnt']}")
 
     db_connected = True
 except Exception as e:
@@ -77,175 +223,73 @@ except Exception as e:
     db_connected = False
 
 st.markdown("")
-st.markdown("")
-
-# ── Problem → Solution (two columns, very brief) ────────────────────────────
-left, right = st.columns(2)
-
-with left:
-    st.markdown(
-        '<div class="card card-accent-red">'
-        '<div class="feature-title" style="color:#ef4444">The problem</div>'
-        '<div class="feature-desc" style="font-size:0.9rem;line-height:1.7">'
-        'Every business has one central object '
-        '— an order, a deal, a case, a policy. '
-        'It crosses every department. Today, a <strong>person</strong> is the glue: '
-        'checking one system, copy-pasting into another, sending a message manually. '
-        'The human is the integration layer.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-with right:
-    st.markdown(
-        '<div class="card card-accent-blue">'
-        '<div class="feature-title" style="color:#4f8ff7">SpineAgent</div>'
-        '<div class="feature-desc" style="font-size:0.9rem;line-height:1.7">'
-        'An agent that operates on the <strong>structural topology</strong> of the business. '
-        'It knows the objects, relationships, states, and possible actions. '
-        'The human stops being the relay and becomes the <strong>approver</strong>. '
-        'Read is autonomous. Write needs your OK.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-st.markdown("")
-st.markdown("")
-
-# ── Three modes (tight, visual) ─────────────────────────────────────────────
-st.markdown(
-    f'<div style="color:{COLORS["text_dim"]};font-size:0.75rem;text-transform:uppercase;'
-    f'letter-spacing:0.08em;font-weight:600;margin-bottom:12px">Three modes of operation</div>',
-    unsafe_allow_html=True,
-)
-
-m1, m2, m3 = st.columns(3)
-
-with m1:
-    st.markdown(
-        '<div class="feature-card card-accent-blue">'
-        '<div class="feature-title" style="font-size:1.1rem">Assist</div>'
-        '<div class="feature-desc">"What is the status of order 43659?"'
-        '<br>Routes to the right skill, queries the spine, answers with real data.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-with m2:
-    st.markdown(
-        '<div class="feature-card card-accent-green">'
-        '<div class="feature-title" style="font-size:1.1rem">Act</div>'
-        '<div class="feature-desc">"Notify the customer their order shipped."'
-        '<br>Plans the steps, executes reads, halts at writes for your approval.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-with m3:
-    st.markdown(
-        '<div class="feature-card card-accent-amber">'
-        '<div class="feature-title" style="font-size:1.1rem">Monitor</div>'
-        '<div class="feature-desc">No one needs to ask.'
-        '<br>Scans for stale orders, anomalies, and escalations. Alerts before problems grow.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-st.markdown("")
-st.markdown("")
-
-# ── What makes it different (one line each) ─────────────────────────────────
-st.markdown(
-    f'<div style="color:{COLORS["text_dim"]};font-size:0.75rem;text-transform:uppercase;'
-    f'letter-spacing:0.08em;font-weight:600;margin-bottom:12px">What makes this different</div>',
-    unsafe_allow_html=True,
-)
-
-d1, d2, d3 = st.columns(3)
-
-with d1:
-    st.markdown(
-        '<div class="card" style="padding:20px">'
-        f'<div style="color:{COLORS["primary"]};font-weight:700;font-size:0.95rem;margin-bottom:6px">Persistent memory</div>'
-        f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem">Not a chat session. Every decision, action, and pattern '
-        'is stored with vector embeddings. The agent gets smarter over time.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-with d2:
-    st.markdown(
-        '<div class="card" style="padding:20px">'
-        f'<div style="color:{COLORS["success"]};font-weight:700;font-size:0.95rem;margin-bottom:6px">Self-improving skills</div>'
-        f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem">When the agent can\'t do something, it generates a new skill '
-        'with Claude, validates it in a sandbox, and registers it. Institutional knowledge, codified.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-with d3:
-    st.markdown(
-        '<div class="card" style="padding:20px">'
-        f'<div style="color:{COLORS["warning"]};font-weight:700;font-size:0.95rem;margin-bottom:6px">Approval gate</div>'
-        f'<div style="color:{COLORS["text_muted"]};font-size:0.8rem">Read = autonomous. Write = needs your OK. '
-        'Not a limitation. The trust mechanism that makes delegation safe and scalable.</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-st.markdown("")
 
 # ── Learn more (expandable deep dive) ───────────────────────────────────────
-with st.expander("Learn more about how SpineAgent works"):
+with st.expander("Architecture deep dive"):
     st.markdown(
-        f'<div style="color:{COLORS["text_muted"]};font-size:0.88rem;line-height:1.8;max-width:750px">'
+        f'<div style="max-width:780px">'
 
-        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin-bottom:8px">'
-        'The Spine: a structural abstraction</div>'
-        'Every business has one entity at the center — the object with the highest density '
-        'of cross-domain relationships. An order touches Sales, Production, Purchasing, Customer Service, '
-        'Logistics. SpineAgent models this as a <strong>unified spine object</strong> that reconstructs '
-        'the complete state from 10+ database tables across 4 schemas in a single call. '
-        'The agent doesn\'t operate on free text. It operates on the topology of your business.'
+        # Multi-agent
+        f'<div class="card card-accent-blue" style="margin-bottom:16px">'
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
+        'Multi-agent architecture</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
+        'SpineAgent is not a single prompt chain. It is a system of specialized components '
+        'that collaborate: a <strong>router</strong> classifies intent and selects the execution mode. '
+        'A <strong>planner</strong> decomposes complex objectives into skill chains using Claude. '
+        'An <strong>executor</strong> runs the chain with autonomous/gated classification per step. '
+        'A <strong>monitor</strong> runs independently on a schedule. '
+        'And the <strong>AutoSkill loop</strong> generates, validates, and registers new capabilities. '
+        'Each component is independently testable and replaceable.</div></div>'
 
-        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin:20px 0 8px">'
-        'Context Store: institutional memory</div>'
-        'Unlike a chatbot that forgets after each session, SpineAgent stores every decision, '
-        'action result, pattern, and state snapshot in PostgreSQL with vector embeddings (pgvector). '
-        'This means semantic search across the agent\'s entire history. After weeks of operation, '
-        'the agent understands your business better than any new employee would.'
+        # Spine
+        f'<div class="card" style="margin-bottom:16px">'
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
+        'The Spine Object</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
+        'A unified Pydantic model that reconstructs a SalesOrder from 10+ tables '
+        'across 4 schemas (Sales, Production, Person, Purchasing) via 3 parameterized SQL queries. '
+        'Customer info, addresses, line items with margins, inventory levels per product — '
+        'one call, complete cross-domain context.</div></div>'
 
-        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin:20px 0 8px">'
-        'AutoSkill: the agent builds its own tools</div>'
-        'When the agent receives a request it can\'t handle, it doesn\'t fail. '
-        'It detects the gap, generates Python code using Claude, validates it in a sandbox '
-        '(syntax, class structure, required attributes), and persists the new skill in the registry. '
-        'Next time the same need arises, the capability already exists. '
-        'The skill library becomes codified institutional knowledge.'
+        # Context Store
+        f'<div class="card" style="margin-bottom:16px">'
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
+        'Context Store</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
+        'PostgreSQL + pgvector. Every decision, action result, pattern, and state snapshot '
+        'is stored with a 1536-dim vector embedding. Supports both semantic search '
+        '(\"find similar situations\") and structured queries (\"all actions on order #43659\"). '
+        'This is not session memory — it is persistent institutional knowledge.</div></div>'
 
-        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin:20px 0 8px">'
-        'Approval Gate: trust by design</div>'
-        'The agent can observe, query, reason, and propose without restriction. '
-        'But sending a message, modifying a record, or executing a transaction requires explicit human approval. '
-        'Each write action creates a pending approval with full context — what the action is, why it\'s proposed, '
-        'and the data behind it. Approvals expire after 2 hours. '
-        'This is not a transitional limitation. It is the mechanism that allows a business to delegate more '
-        'work to the agent over time without losing control. You\'ll see pending approvals as notifications '
-        'on the Activity page.'
+        # Approval Gate
+        f'<div class="card" style="margin-bottom:16px">'
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
+        'Approval Gate</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
+        'Every write action creates a pending approval record in PostgreSQL with full context: '
+        'what the action is, why it was proposed, the data behind it, and a 2-hour expiry. '
+        'Approvals appear as notifications on the Activity page and as banners in Chat. '
+        'The human approves, rejects, or lets it expire. The agent proceeds or stands down.</div></div>'
 
-        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:1rem;margin:20px 0 8px">'
-        'The demo</div>'
-        'This system runs on <strong>AdventureWorks</strong> — a real OLTP database with 31,000+ orders, '
-        '19,000+ customers, and 500+ products. The spine object is a SalesOrder. '
-        'Everything you see in this dashboard is live data from PostgreSQL, processed by Claude, '
-        'with real skills executing real SQL queries. Nothing is mocked.'
+        # Demo
+        f'<div class="card" style="margin-bottom:0">'
+        f'<div style="color:{COLORS["text"]};font-weight:600;font-size:0.95rem;margin-bottom:8px">'
+        'This demo</div>'
+        f'<div style="color:{COLORS["text_muted"]};font-size:0.85rem;line-height:1.7">'
+        'Running on <strong>AdventureWorks OLTP</strong> — 31,000+ orders, 19,000+ customers, '
+        '500+ products. The spine object is a SalesOrder. '
+        'Every response in this dashboard comes from live SQL queries against real data, '
+        'processed by Claude via the Anthropic API. Nothing is mocked. '
+        'Integrations with Tiendanube (e-commerce) and Telegram (messaging) via MCP servers.</div></div>'
+
         '</div>',
         unsafe_allow_html=True,
     )
 
 st.markdown("")
 
-# ── Recent activity (if DB connected) ───────────────────────────────────────
+# ── Recent activity ──────────────────────────────────────────────────────────
 if db_connected:
     from agent.context_store import search_structured
     recent = run_async(search_structured(limit=5))
@@ -273,7 +317,7 @@ if db_connected:
 st.markdown("")
 st.markdown("")
 
-# ── Built with (compact, at the bottom) ─────────────────────────────────────
+# ── Built with ──────────────────────────────────────────────────────────────
 st.markdown(
     f'<div style="color:{COLORS["text_dim"]};font-size:0.75rem;text-transform:uppercase;'
     f'letter-spacing:0.08em;font-weight:600;margin-bottom:12px">Built with</div>',
@@ -286,7 +330,7 @@ tech = [
     ("PostgreSQL 16", "AdventureWorks OLTP\n+ pgvector embeddings"),
     ("MCP Protocol", "Tiendanube e-commerce\n+ Telegram Bot"),
     ("Python async", "Pydantic models,\npsycopg3, APScheduler"),
-    ("Docker Compose", "One-command setup\n+ auto-loaded demo data"),
+    ("Docker Compose", "One-command setup\n+ auto-loaded data"),
 ]
 for col, (name, detail) in zip([t1, t2, t3, t4, t5], tech):
     col.markdown(
