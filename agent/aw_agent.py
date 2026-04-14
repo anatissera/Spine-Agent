@@ -416,7 +416,7 @@ class Agent:
     ) -> None:
         self.client = anthropic.Anthropic()
         if db_port is None:
-            db_port = int(os.environ.get("DB_PORT", "5432"))
+            db_port = int(os.environ.get("DB_PORT", "5433"))
         # cwd defaults to the Spine-Agent root (parent of agent/)
         self.cwd = cwd or str(Path(__file__).parent.parent)
         # skills default to skills/aw/ at Spine-Agent root
