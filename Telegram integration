@@ -1,0 +1,106 @@
+from telegram import Update
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ContextTypes
+)
+import anthropic
+
+# ===== CONFIGURACIÓN =====
+TELEGRAM_TOKEN = "your-telegram-bot-token-here"
+ANTHROPIC_KEY = "your-anthropic-api-key-here"
+
+SYSTEM_PROMPT = "Eres un asistente útil y amigable. Responde en español de forma clara y concisa."
+
+# Cliente de Claude
+client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+
+# Historial por usuario
+historial = {}
+
+# ===== COMANDOS =====
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user.first_name
+    await update.message.reply_text(
+        f"¡Hola {user}! 👋\n\n"
+        f"Soy un asistente con tecnología Claude 🤖\n"
+        f"Escríbeme lo que necesites.\n\n"
+        f"Comandos:\n"
+        f"/limpiar - Borrar historial\n"
+        f"/modelo - Ver modelo actual"
+    )
+
+async def limpiar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    historial.pop(user_id, None)
+    await update.message.reply_text("🧹 Historial borrado. Empezamos de cero.")
+
+async def modelo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🧠 Modelo actual: Claude claude-sonnet-4-20250514 (Anthropic)")
+
+# ===== RESPONDER CON CLAUDE =====
+
+async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    mensaje = update.message.text
+
+    # Inicializar historial si es nuevo
+    if user_id not in historial:
+        historial[user_id] = []
+
+    # Agregar mensaje del usuario
+    historial[user_id].append({
+        "role": "user",
+        "content": mensaje
+    })
+
+    # Mostrar "escribiendo..."
+    await update.message.chat.send_action("typing")
+
+    try:
+        # Llamar a Claude
+        respuesta = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=SYSTEM_PROMPT,
+            messages=historial[user_id]
+        )
+
+        texto = respuesta.content[0].text
+
+        # Guardar respuesta en historial
+        historial[user_id].append({
+            "role": "assistant",
+            "content": texto
+        })
+
+        # Limitar historial a últimos 20 mensajes
+        if len(historial[user_id]) > 20:
+            historial[user_id] = historial[user_id][-20:]
+
+    except anthropic.APIError as e:
+        texto = f"❌ Error de API: {str(e)}"
+    except Exception as e:
+        texto = f"❌ Error: {str(e)}"
+
+    # Enviar respuesta (dividir si es muy larga)
+    if len(texto) > 4096:
+        for i in range(0, len(texto), 4096):
+            await update.message.reply_text(texto[i:i+4096])
+    else:
+        await update.message.reply_text(texto)
+
+# ===== INICIAR BOT =====
+
+app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("limpiar", limpiar))
+app.add_handler(CommandHandler("modelo", modelo))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
+
+print("🤖 Bot con Claude corriendo...")
+app.run_polling()
