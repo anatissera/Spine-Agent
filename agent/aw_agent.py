@@ -235,6 +235,156 @@ TOOL_SCHEMAS: list[dict] = [
             "required": ["query"],
         },
     },
+    # ── Restock & Publish tools ────────────────────────────────────────────
+    {
+        "name": "create_restock_request",
+        "description": (
+            "Create a provider restock request in the DB (pending_approvals table). "
+            "Returns request_id and approval_id. Present to operator before calling "
+            "send_provider_request. provider_id must match config/providers.yaml."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "product_name": {"type": "string"},
+                "product_description": {"type": "string"},
+                "price": {"type": "number"},
+                "quantity": {"type": "integer"},
+                "provider_id": {"type": "string", "description": "e.g. 'bike_provider'"},
+                "sku": {"type": "string", "description": "Optional SKU"},
+            },
+            "required": ["product_name", "product_description", "price", "quantity", "provider_id"],
+        },
+    },
+    {
+        "name": "get_restock_request",
+        "description": (
+            "Fetch the full state of a restock request by ID. "
+            "Returns product details, escalation schedule, and is_followup_due flag."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"request_id": {"type": "integer"}},
+            "required": ["request_id"],
+        },
+    },
+    {
+        "name": "update_restock_state",
+        "description": (
+            "Update the restock request after polling Telegram or sending a follow-up. "
+            "Advances the Telegram update offset and retry count; auto-computes next_followup_at."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "request_id": {"type": "integer"},
+                "last_telegram_update_id": {"type": "integer"},
+                "new_retry_count": {"type": "integer"},
+                "telegram_message_id": {"type": "integer", "description": "0 if not sending a new message"},
+            },
+            "required": ["request_id", "last_telegram_update_id", "new_retry_count"],
+        },
+    },
+    {
+        "name": "cancel_restock_request",
+        "description": "Cancel a restock request (provider rejected, timeout, or user cancelled).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "request_id": {"type": "integer"},
+                "reason": {"type": "string"},
+            },
+            "required": ["request_id", "reason"],
+        },
+    },
+    {
+        "name": "confirm_restock_request",
+        "description": (
+            "Mark a restock request as approved after the provider confirmed. "
+            "Returns the product payload to pass to create_product."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "request_id": {"type": "integer"},
+                "provider_response": {"type": "string", "description": "Raw text from provider"},
+            },
+            "required": ["request_id", "provider_response"],
+        },
+    },
+    {
+        "name": "create_pending_approval",
+        "description": (
+            "Create a human-in-the-loop approval gate before any WRITE action. "
+            "Returns approval_id. Show to operator and wait for explicit confirmation."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "spine_id": {"type": "string"},
+                "action_type": {"type": "string"},
+                "action_payload": {"type": "object"},
+                "context_why": {"type": "string"},
+            },
+            "required": ["spine_id", "action_type", "action_payload", "context_why"],
+        },
+    },
+    {
+        "name": "send_provider_request",
+        "description": (
+            "Send a formatted stock-request message to a provider via Telegram. "
+            "WRITE action — requires approval_id equal to the request_id. "
+            "Returns telegram message_id."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "provider_id": {"type": "string"},
+                "product_name": {"type": "string"},
+                "quantity": {"type": "integer"},
+                "unit_price": {"type": "number"},
+                "description": {"type": "string"},
+                "request_id": {"type": "integer"},
+                "approval_id": {"type": "integer"},
+            },
+            "required": ["provider_id", "product_name", "quantity", "unit_price", "description", "request_id", "approval_id"],
+        },
+    },
+    {
+        "name": "poll_provider_response",
+        "description": (
+            "Poll Telegram for new messages from a provider and interpret the reply. "
+            "Returns found, response_type ('confirmed'/'rejected'/'unclear'/'none'), "
+            "raw_text, and new_update_id. Always store new_update_id via update_restock_state."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "provider_id": {"type": "string"},
+                "last_update_id": {"type": "integer", "description": "0 on first call"},
+            },
+            "required": ["provider_id"],
+        },
+    },
+    {
+        "name": "create_product",
+        "description": (
+            "Publish a new product on Tiendanube. WRITE action — requires approval_id. "
+            "Returns product id and permalink."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "price": {"type": "number"},
+                "stock": {"type": "integer"},
+                "approval_id": {"type": "integer"},
+                "sku": {"type": "string"},
+            },
+            "required": ["name", "description", "price", "stock", "approval_id"],
+        },
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -419,8 +569,8 @@ class Agent:
             db_port = int(os.environ.get("DB_PORT", "5433"))
         # cwd defaults to the Spine-Agent root (parent of agent/)
         self.cwd = cwd or str(Path(__file__).parent.parent)
-        # skills default to skills/aw/ at Spine-Agent root
-        self.skills_dir = skills_dir or str(Path(__file__).parent.parent / "skills" / "aw")
+        # skills default to skills/ root — recursive scan picks up all sub-domains
+        self.skills_dir = skills_dir or str(Path(__file__).parent.parent / "skills")
 
         # Default memory file: AGENTS.md in the same directory as this file
         if memory_file is None:
