@@ -1,6 +1,7 @@
 """Human-in-the-Loop Approval Gate.
 
-Core rule: READ/analyze = autonomous, WRITE/send/change = requires approval.
+Core rule: internal operations (query, draft, test, store) = autonomous.
+Production-affecting actions (send message to customer, mutate live system) = requires approval.
 
 Manages the spine_agent.pending_approvals table: create requests, check status,
 approve/reject, handle expiration.
@@ -18,7 +19,7 @@ DEFAULT_EXPIRY_HOURS = 2
 
 # ── Classification ───────────────────────────────────────────────────────────
 
-# Skills that are READ-only can execute without approval
+# Internal skills — run autonomously (no production side-effects)
 READ_SKILLS = {
     "query_order_status",
     "get_customer_info",
@@ -26,9 +27,10 @@ READ_SKILLS = {
     "check_inventory",
     "detect_stale_orders",
     "generate_order_summary",
+    "analyze_company_config",
 }
 
-# Skills that perform WRITE actions require approval
+# Production-affecting skills — require human approval before execution
 WRITE_SKILLS = {
     "send_whatsapp_notification",
     "send_telegram_message",
@@ -37,9 +39,10 @@ WRITE_SKILLS = {
 
 
 def requires_approval(skill_name: str) -> bool:
-    """Check if a skill requires human approval before execution.
+    """Check if a skill affects production and requires human approval.
 
-    Default: unknown skills require approval (safe default).
+    Default: unknown skills require approval (safe default — assume
+    production impact until proven otherwise).
     """
     if skill_name in READ_SKILLS:
         return False
